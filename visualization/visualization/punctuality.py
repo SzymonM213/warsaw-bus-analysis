@@ -1,22 +1,23 @@
+''' Module for calculating the punctuality of the buses. '''
 import pandas as pd
-from visualization.visualization.utils import calculate_distance
-from datetime import timedelta, datetime
+from .utils import calculate_distance
+from datetime import datetime
 from tqdm import tqdm
-from line_profiler import LineProfiler
 
 def get_line_schedule(line: str) -> pd.DataFrame:
+    ''' Get the schedule for the given line. '''
     schedule = pd.read_csv('../data/schedule.csv', low_memory=False)
     schedule['BusstopID'] = schedule['BusstopID'].astype(str)
     schedule['Brigade'] = schedule['Brigade'].astype(int)
     return schedule[schedule['Line'] == line]
 
 def get_line_bus_stops(line: str) -> pd.DataFrame:
+    ''' Get all the bus stops for the given line.'''
+
     bus_stops = pd.read_json('../data/bus_stops.json')
     
     line_schedule = get_line_schedule(line)
     line_bus_stops = line_schedule[['BusstopID', 'BusstopNr']].drop_duplicates()
-
-    # Convert to string to match bus_stops
     line_bus_stops['BusstopID'] = line_bus_stops['BusstopID'].astype(str)
     line_bus_stops = pd.merge(line_bus_stops, bus_stops, on=['BusstopID', 'BusstopNr'], how='left')
     return line_bus_stops
@@ -26,6 +27,7 @@ def get_line_stops(line: str, localizations: pd.DataFrame) -> pd.DataFrame:
     localizations = localizations[localizations['Lines'] == line]
     localizations = localizations.drop_duplicates()
     
+    bus_stops = pd.read_json('../data/bus_stops.json')
     bus_stops = get_line_bus_stops(line).drop_duplicates()
 
     if bus_stops.empty:
@@ -34,7 +36,8 @@ def get_line_stops(line: str, localizations: pd.DataFrame) -> pd.DataFrame:
     # merge localizations with the minimal distance to the bus stop
     result = []
     for _, row in localizations.iterrows():
-        distances = bus_stops.apply(lambda x: calculate_distance((x['Latitude'], x['Longitude']), (row['Lat'], row['Lon'])), axis=1)
+        distances = bus_stops.apply(lambda x: calculate_distance((x['Latitude'], x['Longitude']), 
+                                                                 (row['Lat'], row['Lon'])), axis=1)
         min_distance = distances.min()
         min_distance_index = distances.idxmin()
         min_distance_bus_stop = bus_stops.loc[min_distance_index]
@@ -63,17 +66,18 @@ def get_stop_schedule(line: str, line_stops: pd.DataFrame) -> pd.DataFrame:
 
     result = []
     for _, stop in line_stops.iterrows():
-        # substitute one minute from scheduled stop (we assume that the bus can be one minute earlier)
-        # schedule['Time'] = schedule['Time'].apply(subtract_minute)
-        scheduled_stop = schedule[(schedule['Brigade'] == stop['Brigade']) & (schedule['Time'] < stop['Time']) \
-                                  & (schedule['BusstopID'] == stop['BusstopID']) & (schedule['BusstopNr'] == stop['BusstopNr'])]
+        scheduled_stop = schedule[(schedule['Brigade'] == stop['Brigade']) \
+                                  & (schedule['Time'] < stop['Time']) \
+                                  & (schedule['BusstopID'] == stop['BusstopID']) \
+                                  & (schedule['BusstopNr'] == stop['BusstopNr'])]
         if scheduled_stop.empty:
             continue
         scheduled_stop = scheduled_stop.iloc[-1]
         scheduled_stop['ScheduledTime'] = scheduled_stop['Time']
         scheduled_stop['Time'] = stop['Time']
 
-        delay = datetime.combine(datetime.today(), scheduled_stop['Time']) - datetime.combine(datetime.today(), scheduled_stop['ScheduledTime'])
+        delay = datetime.combine(datetime.today(), scheduled_stop['Time']) - \
+                datetime.combine(datetime.today(), scheduled_stop['ScheduledTime'])
         scheduled_stop['Delay'] = delay.seconds / 60
         scheduled_stop.drop(['Unnamed: 0'], inplace=True)
         if scheduled_stop['Delay'] < 30: 
@@ -82,10 +86,12 @@ def get_stop_schedule(line: str, line_stops: pd.DataFrame) -> pd.DataFrame:
             result.append(scheduled_stop)
 
     result = pd.DataFrame(result)
-    result.drop_duplicates(subset=['BusstopID', 'BusstopNr', 'Brigade', 'ScheduledTime'], keep='first', inplace=True)
+    result.drop_duplicates(subset=['BusstopID', 'BusstopNr', 'Brigade', 'ScheduledTime'], 
+                           keep='first', inplace=True)
     return result
 
-def count_delays(hour: int) -> pd.DataFrame:
+def get_delays(hour: int) -> pd.DataFrame:
+    ''' Find all the delays for the given hour. '''
     localizations = pd.read_json(f'../data/buses-{hour}.json')
     lines = localizations['Lines'].unique()
     delays = []

@@ -1,8 +1,8 @@
 ''' This module contains functions for counting overspeeding vehicles and plotting the results. '''
 import json
 import pandas as pd
-from visualization.visualization.utils import calculate_distance, get_address_components, date_to_seconds
-from visualization.visualization.utils import WARSAW_CENTER
+from visualization.visualization.utils import calculate_distance, get_address_components
+from visualization.visualization.utils import WARSAW_CENTER, date_to_seconds
 from datetime import datetime
 import folium
 from typing import Dict, Set, Tuple
@@ -69,7 +69,7 @@ def count_overspeeding_vehicles(hour: int) -> Tuple[int, Dict[str, int]]:
 
         group['Speed'] = group.apply(lambda row: calculate_speed((row['PrevLat'], row['PrevLon']),
                                                                   (row['Lat'], row['Lon']), 
-                                                                  row['PrevTime'], row['Time']), 
+                                                                  row['PrevTime'], row['Time']),
                                                                   axis=1)
 
         for i in range(1, len(group)):
