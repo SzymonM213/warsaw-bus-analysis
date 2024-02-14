@@ -2,7 +2,7 @@
 import argparse
 import folium
 import geocoder
-from utils import calculate_distance, get_current_localization, WARSAW_CENTER
+from .utils import calculate_distance, get_current_localization, WARSAW_CENTER
 
 RADIUS = 1  # in kilometers
 

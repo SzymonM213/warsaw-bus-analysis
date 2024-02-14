@@ -1,14 +1,13 @@
 ''' This module contains functions for counting overspeeding vehicles and plotting the results. '''
 import json
-import pandas as pd
-from visualization.visualization.utils import calculate_distance, get_address_components
-from visualization.visualization.utils import WARSAW_CENTER, date_to_seconds
-from datetime import datetime
-import folium
-from typing import Dict, Set, Tuple
-from tqdm import tqdm
 import time
+from typing import Dict, Set, Tuple
+import pandas as pd
+import folium
 import matplotlib.pyplot as plt
+from tqdm import tqdm
+from .utils import calculate_distance, get_address_components
+from .utils import WARSAW_CENTER, date_to_seconds
 
 class Street:
     ''' Class representing a street. '''
@@ -22,30 +21,30 @@ class Street:
 
     def __repr__(self):
         return f'{self.name}, {self.district}, {self.city}'
-    
+
     def __eq__(self, other):
         return self.name == other.name and self.district == other.district \
                and self.city == other.city
-    
+
     def __hash__(self):
         return hash((self.name, self.district, self.city))
 
-def calculate_speed(coord1: tuple[float, float], coord2: tuple[float, float], 
+def calculate_speed(coord1: tuple[float, float], coord2: tuple[float, float],
                     time1: float, time2: float) -> float:
     ''' Calculate the speed between two coordinates. '''
     distance = calculate_distance(coord1, coord2)
     if distance == 0:
         return 0
-    
-    time = (date_to_seconds(time2) - date_to_seconds(time1)) / 3600
-    return distance / time
+
+    time_delta = (date_to_seconds(time2) - date_to_seconds(time1)) / 3600
+    return distance / time_delta
 
 def count_overspeeding_vehicles(hour: int) -> Tuple[int, Dict[str, int]]:
     ''' Count overspeeding vehicles and their number on each street. '''
     result: Dict[str, Set[str]] = {}
     overspeeding_vehicles: Set[str] = set()
 
-    with open(f'../data/buses-{hour}.json') as f:
+    with open(f'../data/buses-{hour}.json', 'r', encoding='utf-8') as f:
         data = json.load(f)
     df = pd.DataFrame(data)
 
@@ -68,7 +67,7 @@ def count_overspeeding_vehicles(hour: int) -> Tuple[int, Dict[str, int]]:
         group['PrevTime'].fillna(group['Time'].iloc[0], inplace=True)
 
         group['Speed'] = group.apply(lambda row: calculate_speed((row['PrevLat'], row['PrevLon']),
-                                                                  (row['Lat'], row['Lon']), 
+                                                                  (row['Lat'], row['Lon']),
                                                                   row['PrevTime'], row['Time']),
                                                                   axis=1)
 
@@ -76,7 +75,7 @@ def count_overspeeding_vehicles(hour: int) -> Tuple[int, Dict[str, int]]:
             if group['Speed'].iloc[i] > 50:
                 overspeeding_vehicles.add(vehicle)
                 try:
-                    street = Street(*get_address_components(group['Lat'].iloc[i], 
+                    street = Street(*get_address_components(group['Lat'].iloc[i],
                                                             group['Lon'].iloc[i]))
                 except:
                     time.sleep(1)
@@ -85,9 +84,9 @@ def count_overspeeding_vehicles(hour: int) -> Tuple[int, Dict[str, int]]:
                     result[street] = {vehicle}
                 else:
                     result[street].add(vehicle)
-                folium.Marker([group['Lat'].iloc[i], group['Lon'].iloc[i]], 
+                folium.Marker([group['Lat'].iloc[i], group['Lon'].iloc[i]],
                               popup=f'Speed: {group["Speed"].iloc[i]}').add_to(m)
-    
+
     result = dict(sorted(result.items(), key=lambda item: len(item[1]), reverse=True))
 
     m.save('../maps/overspeed.html')
