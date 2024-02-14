@@ -3,7 +3,7 @@ import json
 import os
 from datetime import datetime
 import time
-from utils import get_current_localization
+from .utils import get_current_localization
 
 API_KEY = os.environ.get('WARSAW_DATA_API_KEY')
 URL = f'https://api.um.warszawa.pl/api/action/busestrams_get/?resource_id= \
