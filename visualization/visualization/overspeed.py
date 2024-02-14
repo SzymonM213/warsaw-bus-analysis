@@ -92,16 +92,3 @@ def count_overspeeding_vehicles(hour: int) -> Tuple[int, Dict[str, int]]:
     m.save('../maps/overspeed.html')
 
     return len(overspeeding_vehicles), result
-
-
-def plot_overspeeds(overspeeds: Dict[str, int], title: str, n: int = 10):
-    ''' Plot the number of overspeeding vehicles on n most popular streets. '''
-    streets = list(overspeeds.keys())[:n]
-    counts = list(overspeeds.values())[:n]
-
-    _, ax = plt.subplots()
-    ax.barh(streets, counts)
-    ax.set_xlabel('Number of overspeeding vehicles')
-    ax.set_title(title)
-
-    plt.show()
