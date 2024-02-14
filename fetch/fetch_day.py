@@ -28,7 +28,7 @@ def fetch_hour():
         time.sleep(15 - (datetime.now() - now).seconds)
         now = datetime.now()
 
-    with open(f'buses-{hour}.json', 'w') as f:
+    with open(f'../data/buses-{hour}.json', 'w') as f:
         json.dump(buses, f)
 
 def main():

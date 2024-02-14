@@ -4,6 +4,7 @@ import os
 from typing import List, Dict
 import pandas as pd
 from tqdm import tqdm
+import time
 
 API_KEY = os.environ.get('WARSAW_DATA_API_KEY')
 URL1 = f'https://api.um.warszawa.pl/api/action/dbtimetable_get'
@@ -36,7 +37,19 @@ def get_lines(busstopId: str, busstopNr: str) -> List[str]:
         'busstopId': busstopId,
         'busstopNr': busstopNr,
     }
-    response = requests.get(URL1, params=params)
+
+    # in case of timeout, wait 10 seconds and try again
+    while True:
+        try:
+            response = requests.get(URL1, params=params)
+            if response.status_code != 200:
+                print(f'Error: {response.status_code}')
+                continue
+            break
+        except:
+            print('Error: timeout get_lines')
+            time.sleep(10)
+        
     data = response.json()
     data = data['result']
 
@@ -54,7 +67,19 @@ def get_schedule(line: str, busstopId: str, busstopNr: str) -> List[Dict[str, st
         'busstopNr': busstopNr,
         'line': line,
     }
-    response = requests.get(URL1, params=params)
+
+    # in case of timeout, wait 10 seconds and try again
+    while True:
+        try:
+            response = requests.get(URL1, params=params)
+            if response.status_code != 200:
+                print(f'Error: {response.status_code}')
+                continue
+            break
+        except:
+            print('Error: timeout get_schedule')
+            time.sleep(10)
+
     data = response.json()
 
     result: List[Dict[str, str]] = []
@@ -77,6 +102,8 @@ def main():
         bus_stops = json.load(f)
 
     result = []
+
+    bus_stops = bus_stops
     for bus_stop in tqdm(bus_stops):
         lines = get_lines(bus_stop['BusstopID'], bus_stop['BusstopNr'])
         for line in lines:
