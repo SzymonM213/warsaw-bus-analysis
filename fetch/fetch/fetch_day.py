@@ -4,6 +4,7 @@ import os
 from datetime import datetime
 import time
 from .utils import get_current_localization
+import pandas as pd
 
 API_KEY = os.environ.get('WARSAW_DATA_API_KEY')
 URL = f'https://api.um.warszawa.pl/api/action/busestrams_get/?resource_id= \
@@ -20,8 +21,11 @@ def fetch_hour():
         time.sleep(15 - (datetime.now() - now).seconds)
         now = datetime.now()
 
+    data = pd.DataFrame(buses)
+    data = data.drop_duplicates()
+
     with open(f'../data/buses-{hour}.json', 'w', encoding='utf-8') as f:
-        json.dump(buses, f)
+        f.write(data.to_json(orient='records'))
 
 def fetch_day():
     ''' Fetch data for all the day. '''
