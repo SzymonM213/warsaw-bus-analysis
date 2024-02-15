@@ -3,58 +3,45 @@ from datetime import datetime
 import pandas as pd
 from tqdm import tqdm
 from .utils import calculate_distance
+from scipy.spatial.distance import cdist
+
+PATH_TO_BUS_STOPS = '../data/bus_stops.json'
+PATH_TO_SCHEDULE = '../data/schedule.csv'
+
+def path_to_localizations(hour: int) -> str:
+    ''' Get the path to the data for the given hour. '''
+    return f'../data/buses-{hour}.json'
+    # return '../../buses-2024-02-12_19:15:40.464347.json'
 
 def get_line_schedule(line: str) -> pd.DataFrame:
     ''' Get the schedule for the given line. '''
-    schedule = pd.read_csv('../data/schedule.csv', low_memory=False)
+    schedule = pd.read_csv(PATH_TO_SCHEDULE, low_memory=False)
     schedule['BusstopID'] = schedule['BusstopID'].astype(str)
     schedule['Brigade'] = schedule['Brigade'].astype(int)
     return schedule[schedule['Line'] == line]
 
 def get_line_bus_stops(line: str) -> pd.DataFrame:
     ''' Get all the bus stops for the given line.'''
-
-    bus_stops = pd.read_json('../data/bus_stops.json')
+    bus_stops = pd.read_json(PATH_TO_BUS_STOPS)
     line_schedule = get_line_schedule(line)
     line_bus_stops = line_schedule[['BusstopID', 'BusstopNr']].drop_duplicates()
     line_bus_stops['BusstopID'] = line_bus_stops['BusstopID'].astype(str)
     line_bus_stops = pd.merge(line_bus_stops, bus_stops, on=['BusstopID', 'BusstopNr'], how='left')
+
+    line_bus_stops['LatRound'] = line_bus_stops['Latitude'].round(4)
+    line_bus_stops['LonRound'] = line_bus_stops['Longitude'].round(4)
+
     return line_bus_stops
 
 def get_line_stops(line: str, localizations: pd.DataFrame) -> pd.DataFrame:
     ''' For given line and localizations, get all the stops and the time. '''
     localizations = localizations[localizations['Lines'] == line]
-    localizations = localizations.drop_duplicates()
-
-    bus_stops = pd.read_json('../data/bus_stops.json')
     bus_stops = get_line_bus_stops(line).drop_duplicates()
 
-    if bus_stops.empty:
-        return pd.DataFrame()
+    localizations = localizations.drop_duplicates(subset=['Lines', 'LatRound', 'LonRound', 'Time'], keep='first')
+    localizations_to_stops_rounded = pd.merge(localizations, bus_stops, on=['LatRound', 'LonRound'], how='inner')
 
-    # merge localizations with the minimal distance to the bus stop
-    result = []
-    for _, row in localizations.iterrows():
-        distances = bus_stops.apply(lambda x, r=row:
-                                    calculate_distance((x['Latitude'], x['Longitude']),
-                                                       (r['Lat'], r['Lon'])), axis=1)
-        min_distance = distances.min()
-        min_distance_index = distances.idxmin()
-        min_distance_bus_stop = bus_stops.loc[min_distance_index]
-        result.append({'Line': line,
-                       'Latitude': row['Lat'],
-                       'Longitude': row['Lon'],
-                       'BusstopID': min_distance_bus_stop['BusstopID'],
-                       'BusstopNr': min_distance_bus_stop['BusstopNr'],
-                       'Brigade': row['Brigade'],
-                       'Time': row['Time'].split(' ')[1], # time without date
-                       'Distance': min_distance})
-
-    result = pd.DataFrame(result)
-    result = result[result['Distance'] < 0.025]
-    result['Time'] = pd.to_datetime(result['Time'], format='%H:%M:%S').dt.time
-    result['Brigade'] = result['Brigade'].astype(int)
-    return result.sort_values(by='Time')
+    return localizations_to_stops_rounded.sort_values(by='Time')
 
 def get_stop_schedule(line: str, line_stops: pd.DataFrame) -> pd.DataFrame:
     '''for each stop, get the scheduled time and the actual time'''
@@ -63,6 +50,8 @@ def get_stop_schedule(line: str, line_stops: pd.DataFrame) -> pd.DataFrame:
 
     schedule['Time'] = schedule['Time'].apply(lambda x: '00' + x[2:] if int(x[:2]) >= 24 else x)
     schedule['Time'] = pd.to_datetime(schedule['Time'], format='%H:%M:%S').dt.time
+
+    line_stops['Brigade'] = line_stops['Brigade'].astype(int)
 
     result = []
     for _, stop in line_stops.iterrows():
@@ -92,7 +81,13 @@ def get_stop_schedule(line: str, line_stops: pd.DataFrame) -> pd.DataFrame:
 
 def get_delays(hour: int) -> pd.DataFrame:
     ''' Find all the delays for the given hour. '''
-    localizations = pd.read_json(f'../data/buses-{hour}.json')
+    localizations = pd.read_json(path_to_localizations(hour))
+
+    localizations['Time'] = localizations['Time'].apply(lambda x: '00' + x[2:] if int(x[:2]) >= 24 else x)
+    localizations['Time'] = pd.to_datetime(localizations['Time'], format='%Y-%m-%d %H:%M:%S').dt.time
+    localizations['LatRound'] = localizations['Lat'].round(4)
+    localizations['LonRound'] = localizations['Lon'].round(4)
+
     lines = localizations['Lines'].unique()
     delays = []
     for line in tqdm(lines):
@@ -104,4 +99,6 @@ def get_delays(hour: int) -> pd.DataFrame:
 
 def filter_delays(delays: pd.DataFrame, threshold: int) -> pd.DataFrame:
     ''' Filter delays that are greater than the threshold. '''
+    if delays.empty:
+        return delays
     return delays[delays['Delay'] > threshold]
