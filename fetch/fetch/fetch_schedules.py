@@ -103,7 +103,7 @@ def save_bus_stops():
         json.dump(get_bus_stops(), f)
 
 def save_schedule():
-    ''' Save schedule to a file. '''
+    ''' Iterate over all bus stops and lines and save their schedule to a file.'''
     with open('../data/bus_stops.json', 'r', encoding='utf-8') as f:
         bus_stops = json.load(f)
 

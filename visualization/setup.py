@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='fetch',
-    version='0.1',
+    version='1.0',
     packages=find_packages(),
     install_requires=[
         'pandas',
@@ -10,7 +10,8 @@ setup(
         'tqdm',
         'geopy',
         'matplotlib',
-        'folium'
+        'folium',
+        'scipy'
     ],
     description='A package for fetching data from the Warsaw API.'
 )

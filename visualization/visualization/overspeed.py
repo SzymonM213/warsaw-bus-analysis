@@ -39,18 +39,19 @@ def calculate_speed(coord1: tuple[float, float], coord2: tuple[float, float],
     time_delta = (date_to_seconds(time2) - date_to_seconds(time1)) / 3600
     return distance / time_delta
 
-def count_overspeeding_vehicles(hour: int) -> Tuple[int, Dict[str, int]]:
+def count_overspeeding_vehicles(path_to_localizations: str, save_map: bool) -> Tuple[int, Dict[str, int]]:
     ''' Count overspeeding vehicles and their number on each street. '''
     result: Dict[str, Set[str]] = {}
     overspeeding_vehicles: Set[str] = set()
 
-    with open(f'../data/buses-{hour}.json', 'r', encoding='utf-8') as f:
+    with open(path_to_localizations, 'r', encoding='utf-8') as f:
         data = json.load(f)
     df = pd.DataFrame(data)
 
     grouped = df.groupby('VehicleNumber')
 
-    m = folium.Map(location=WARSAW_CENTER, zoom_start=12)
+    if save_map:
+        m = folium.Map(location=WARSAW_CENTER, zoom_start=12)
     for vehicle, group in tqdm(grouped):
         group = group.sort_values('Time')
 
@@ -84,11 +85,18 @@ def count_overspeeding_vehicles(hour: int) -> Tuple[int, Dict[str, int]]:
                     result[street] = {vehicle}
                 else:
                     result[street].add(vehicle)
-                folium.Marker([group['Lat'].iloc[i], group['Lon'].iloc[i]],
-                              popup=f'Speed: {group["Speed"].iloc[i]}').add_to(m)
+
+                if save_map:
+                    folium.Marker([group['Lat'].iloc[i], group['Lon'].iloc[i]],
+                                 popup=f'Speed: {group["Speed"].iloc[i]}').add_to(m)
 
     result = dict(sorted(result.items(), key=lambda item: len(item[1]), reverse=True))
 
-    m.save('../maps/overspeed.html')
+    if save_map:
+        m.save('../maps/overspeed.html')
 
     return len(overspeeding_vehicles), result
+
+def count_overspeeding_vehicles_from_hour(hour: int) -> Tuple[int, Dict[str, int]]:
+    ''' Count overspeeding vehicles from the given hour. '''
+    return count_overspeeding_vehicles(f'../data/buses-{hour}.json', True)

@@ -14,12 +14,12 @@ def calculate_distance(coord1: tuple[float, float], coord2: tuple[float, float])
     ''' Calculate distance between two coordinates.'''
     return geodesic(coord1, coord2).kilometers
 
-def coordinates_to_street(latitude, longitude):
-    ''' Get street name from coordinates. '''
-    geolocator = Nominatim(user_agent="geoapiExercises")
-    location = geolocator.reverse((latitude, longitude), exactly_one=True)
-    address = location.address
-    return address
+# def coordinates_to_street(latitude, longitude):
+#     ''' Get street name from coordinates. '''
+#     geolocator = Nominatim(user_agent="geoapiExercises")
+#     location = geolocator.reverse((latitude, longitude), exactly_one=True)
+#     address = location.address
+#     return address
 
 def date_to_seconds(date: str) -> float:
     ''' Convert date to seconds. '''
@@ -28,11 +28,17 @@ def date_to_seconds(date: str) -> float:
 def get_address_components(latitude, longitude):
     ''' Get street name, district and city from coordinates. '''
     geolocator = Nominatim(user_agent="geoapiExercises")
-    location = geolocator.reverse((latitude, longitude), exactly_one=True)
+    try:
+        location = geolocator.reverse((latitude, longitude), exactly_one=True)
+    except:
+        return '', '', ''
     address = location.address
     address_components = address.split(', ')
 
-    street_name = address_components[0] if len(address_components) > 1 else ''
+    street_name = address_components[1] if len(address_components) > 1 and \
+                                        not address_components[1].isdigit() else \
+                  address_components[0] if len(address_components) > 0 and \
+                                        not address_components[0].isdigit() else ''
     district = address_components[-5] if len(address_components) > 4 else ''
     city = address_components[-4] if len(address_components) > 3 else ''
 
