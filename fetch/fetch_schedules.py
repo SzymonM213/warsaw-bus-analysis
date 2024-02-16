@@ -72,10 +72,10 @@ def get_schedule(line: str, busstop_id: str, busstop_nr: str) -> List[Dict[str, 
     for event in data['result']:
         event = event['values']
         result.append({'Line': line,
-                       'BusstopID': busstop_id, 
-                       'BusstopNr': busstop_nr, 
-                       'Brigade': event[2]['value'], 
-                       'Direction': event[3]['value'], 
+                       'BusstopID': busstop_id,
+                       'BusstopNr': busstop_nr,
+                       'Brigade': event[2]['value'],
+                       'Direction': event[3]['value'],
                        'Time': event[5]['value']})
     return result
 
@@ -99,6 +99,7 @@ def save_schedule():
 
 def main():
     ''' Main function. '''
+    save_bus_stops()
     save_schedule()
 
 
