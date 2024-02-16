@@ -1,6 +1,7 @@
 ''' This module contains utility functions for the visualization module. '''
 from datetime import datetime
 import os
+from typing import Tuple, List, Dict
 from geopy.distance import geodesic
 from geopy.geocoders import Nominatim
 import requests
@@ -14,18 +15,11 @@ def calculate_distance(coord1: tuple[float, float], coord2: tuple[float, float])
     ''' Calculate distance between two coordinates.'''
     return geodesic(coord1, coord2).kilometers
 
-# def coordinates_to_street(latitude, longitude):
-#     ''' Get street name from coordinates. '''
-#     geolocator = Nominatim(user_agent="geoapiExercises")
-#     location = geolocator.reverse((latitude, longitude), exactly_one=True)
-#     address = location.address
-#     return address
-
 def date_to_seconds(date: str) -> float:
     ''' Convert date to seconds. '''
     return datetime.strptime(date, '%Y-%m-%d %H:%M:%S').timestamp()
 
-def get_address_components(latitude, longitude):
+def get_address_components(latitude, longitude) -> Tuple[str, str, str]:
     ''' Get street name, district and city from coordinates. '''
     geolocator = Nominatim(user_agent="geoapiExercises")
     try:
@@ -44,7 +38,7 @@ def get_address_components(latitude, longitude):
 
     return street_name, district, city
 
-def get_current_localization():
+def get_current_localization() -> List[Dict[str, str]]:
     ''' Get current bus localization data from Warsaw Data API.'''
     response = requests.get(URL, timeout=10)
     if response.status_code != 200:

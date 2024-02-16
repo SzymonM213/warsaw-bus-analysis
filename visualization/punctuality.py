@@ -2,8 +2,6 @@
 from datetime import datetime
 import pandas as pd
 from tqdm import tqdm
-from .utils import calculate_distance
-from scipy.spatial.distance import cdist
 
 PATH_TO_BUS_STOPS = 'data/bus_stops.json'
 PATH_TO_SCHEDULE = 'data/schedule.csv'
@@ -11,19 +9,14 @@ PATH_TO_SCHEDULE = 'data/schedule.csv'
 def get_line_schedule(line: str, path_to_schedule: str) -> pd.DataFrame:
     ''' Get the schedule for the given line. '''
     schedule = pd.read_csv(path_to_schedule, low_memory=False)
-    # schedule['BusstopID'] = schedule['BusstopID'].astype(str)
     schedule['Brigade'] = schedule['Brigade'].astype(int)
     return schedule[schedule['Line'] == line]
 
 def get_line_bus_stops(line: str, path_to_bus_stops: str, path_to_schedule: str) -> pd.DataFrame:
     ''' Get all the bus stops for the given line.'''
     bus_stops = pd.read_json(path_to_bus_stops)
-    # print(bus_stops)
     line_schedule = get_line_schedule(line, path_to_schedule)
     line_bus_stops = line_schedule[['BusstopID', 'BusstopNr']].drop_duplicates()
-    # line_bus_stops['BusstopID'] = line_bus_stops['BusstopID'].astype(str)
-    # print("csv:", line_bus_stops['BusstopID'].dtype)
-    # print("bus stops:", bus_stops['BusstopID'].dtype)
     line_bus_stops = pd.merge(line_bus_stops, bus_stops, on=['BusstopID', 'BusstopNr'], how='left')
 
     line_bus_stops['LatRound'] = line_bus_stops['Latitude'].round(4)
@@ -31,12 +24,15 @@ def get_line_bus_stops(line: str, path_to_bus_stops: str, path_to_schedule: str)
 
     return line_bus_stops
 
-def get_line_stops(line: str, localizations: pd.DataFrame, path_to_bus_stops: str, path_to_schedule: str) -> pd.DataFrame:
+def get_line_stops(line: str, localizations: pd.DataFrame,
+                   path_to_bus_stops: str,
+                   path_to_schedule: str) -> pd.DataFrame:
     ''' For given line and localizations, get all the stops and the time. '''
     localizations = localizations[localizations['Lines'] == line]
     bus_stops = get_line_bus_stops(line, path_to_bus_stops, path_to_schedule).drop_duplicates()
 
-    localizations_to_stops_rounded = pd.merge(localizations, bus_stops, on=['LatRound', 'LonRound'], how='inner')
+    localizations_to_stops_rounded = pd.merge(localizations, bus_stops,
+                                              on=['LatRound', 'LonRound'], how='inner')
 
     return localizations_to_stops_rounded.sort_values(by='Time')
 
@@ -77,14 +73,19 @@ def get_stop_schedule(line: str, line_stops: pd.DataFrame, path_to_schedule: str
                            keep='first', inplace=True)
     return result
 
-def get_delays(hour: int, path_to_localizations: str, path_to_bus_stops: str, path_to_schedule: str) -> pd.DataFrame:
+def get_delays(path_to_localizations: str,
+               path_to_bus_stops: str,
+               path_to_schedule: str) -> pd.DataFrame:
     ''' Find all the delays for the given hour. '''
     localizations = pd.read_json(path_to_localizations)
 
     lines = localizations['Lines'].unique()
 
-    localizations['Time'] = localizations['Time'].apply(lambda x: '00' + x[2:] if int(x[:2]) >= 24 else x)
-    localizations['Time'] = pd.to_datetime(localizations['Time'], format='%Y-%m-%d %H:%M:%S').dt.time
+    localizations['Time'] = localizations['Time'].apply(
+                                lambda x: '00' + x[2:] if int(x[:2]) >= 24 else x
+                            )
+    localizations['Time'] = pd.to_datetime(localizations['Time'],
+                                           format='%Y-%m-%d %H:%M:%S').dt.time
 
     localizations['LatRound'] = localizations['Lat'].round(4)
     localizations['LonRound'] = localizations['Lon'].round(4)
@@ -100,7 +101,7 @@ def get_delays(hour: int, path_to_localizations: str, path_to_bus_stops: str, pa
 def get_delays_from_hour(hour: int) -> pd.DataFrame:
     ''' Get delays from the given hour '''
     path = f'data/buses-{hour}.json'
-    return get_delays(hour, path, PATH_TO_BUS_STOPS, PATH_TO_SCHEDULE)
+    return get_delays(path, PATH_TO_BUS_STOPS, PATH_TO_SCHEDULE)
 
 def filter_delays(delays: pd.DataFrame, threshold: int) -> pd.DataFrame:
     ''' Filter delays that are greater than the threshold. '''

@@ -38,6 +38,7 @@ class TestSchedulesFetch(unittest.TestCase):
 
 class TestDayFetch(unittest.TestCase):
     ''' Test fetch_day.py module. '''
+
     def test_get_current_localization(self):
         ''' Test get_current_localization function. '''
         localization = get_current_localization()

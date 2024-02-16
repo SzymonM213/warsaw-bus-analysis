@@ -6,6 +6,7 @@ BUSSTOP_ID = '4121'
 BUSSTOP_NR = 5
 
 def prepare_test_buses():
+    ''' Prepare mock data for buses location. '''
     buses = []
     for line in LINES:
         loc = {}
@@ -39,12 +40,11 @@ def prepare_test_buses():
         loc['VehicleNumber'] = line[-2]
         buses.append(loc)
 
-    with open('test-buses.json', 'w') as f:
+    with open('test-buses.json', 'w', encoding='utf-8') as f:
         f.write(json.dumps(buses))
 
 def prepare_test_schedule():
-    # schedule_example = pd.read_csv('../../../data/schedule.csv', low_memory=False)
-    # print(schedule_example[(schedule_example['BusstopID'] == '4121') & (schedule_example['BusstopNr'] == 5)])
+    ''' Prepare mock data for bus schedule. '''
     schedule = []
     for line in LINES[len(LINES) // 2:]:
         schedule.append({
@@ -55,7 +55,7 @@ def prepare_test_schedule():
             'Brigade': 1,
             'Direction': 'Pomnik Lotnika' 
         })
-    
+
     for line in LINES[:len(LINES) // 2]:
         schedule.append({
             'Line': line,
@@ -71,9 +71,7 @@ def prepare_test_schedule():
     schedule.to_csv('test-schedule.csv', index=False)
 
 def prepare_test_bus_stops():
-    # bus_stops_example = pd.read_json('../../../data/bus_stops.json')
-    # print(bus_stops_example.head())
-
+    ''' Prepare mock data for bus stops.'''
     bus_stop = {
         'BusstopID': BUSSTOP_ID,
         'BusstopNr': 5,
@@ -82,7 +80,7 @@ def prepare_test_bus_stops():
         'Direction': 'Pomnik Lotnika'
     }
 
-    with open('test-bus-stops.json', 'w') as f:
+    with open('test-bus-stops.json', 'w', encoding='utf-8') as f:
         f.write(json.dumps([bus_stop]))
 
 if __name__ == '__main__':

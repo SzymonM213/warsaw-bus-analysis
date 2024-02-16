@@ -1,10 +1,8 @@
 ''' This module contains functions for counting overspeeding vehicles and plotting the results. '''
 import json
-import time
 from typing import Dict, Set, Tuple
 import pandas as pd
 import folium
-import matplotlib.pyplot as plt
 from tqdm import tqdm
 from .utils import calculate_distance, get_address_components
 from .utils import WARSAW_CENTER, date_to_seconds
@@ -16,17 +14,17 @@ class Street:
         self.district = district
         self.city = city
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f'{self.name}, {self.district}, {self.city}'
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'{self.name}, {self.district}, {self.city}'
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         return self.name == other.name and self.district == other.district \
                and self.city == other.city
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash((self.name, self.district, self.city))
 
 def calculate_speed(coord1: tuple[float, float], coord2: tuple[float, float],
@@ -39,6 +37,7 @@ def calculate_speed(coord1: tuple[float, float], coord2: tuple[float, float],
     return distance / time_delta
 
 def calculate_speeds(group: pd.DataFrame) -> pd.DataFrame:
+    ''' Calculate speeds for each row in the group. '''
     group['PrevLon'] = group['Lon'].shift(1)
     group['PrevLat'] = group['Lat'].shift(1)
     group['PrevTime'] = group['Time'].shift(1)
@@ -54,11 +53,12 @@ def calculate_speeds(group: pd.DataFrame) -> pd.DataFrame:
                                                                 axis=1)
     return group
 
-def get_street(Lat: float, Lon: float) -> Street:
+def get_street(lat: float, lon: float) -> Street:
     ''' Get street from coordinates. '''
-    return Street(*get_address_components(Lat, Lon))
+    return Street(*get_address_components(lat, lon))
 
-def count_overspeeding_vehicles(path_to_localizations: str, save_map: bool) -> Tuple[int, Dict[str, int]]:
+def count_overspeeding_vehicles(path_to_localizations: str, save_map: bool) \
+                                -> Tuple[int, Dict[str, int]]:
     ''' Count overspeeding vehicles and their number on each street. '''
     result: Dict[str, Set[str]] = {}
     overspeeding_vehicles: Set[str] = set()
@@ -92,7 +92,7 @@ def count_overspeeding_vehicles(path_to_localizations: str, save_map: bool) -> T
     result = dict(sorted(result.items(), key=lambda item: len(item[1]), reverse=True))
 
     if save_map:
-        m.save('maps/overspeed.html')
+        m.save('maps/overspeed_map.html')
 
     return len(overspeeding_vehicles), result
 

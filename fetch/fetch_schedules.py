@@ -2,7 +2,6 @@
 import json
 import os
 from typing import List, Dict
-import time
 import requests
 import pandas as pd
 from tqdm import tqdm
@@ -41,17 +40,7 @@ def get_lines(busstop_id: str, busstop_nr: str) -> List[str]:
         'busstopNr': busstop_nr,
     }
 
-    # in case of timeout, wait 10 seconds and try again
-    while True:
-        try:
-            response = requests.get(URL1, params=params, timeout=10)
-            if response.status_code != 200:
-                print(f'Error: {response.status_code}')
-                continue
-            break
-        except Exception as e:
-            print(f'Error: timeout get_lines {e}')
-            time.sleep(10)
+    response = requests.get(URL1, params=params, timeout=10)
 
     data = response.json()
     data = data['result']
@@ -72,17 +61,7 @@ def get_schedule(line: str, busstop_id: str, busstop_nr: str) -> List[Dict[str, 
         'line': line,
     }
 
-    # in case of timeout, wait 10 seconds and try again
-    while True:
-        try:
-            response = requests.get(URL1, params=params, timeout=10)
-            if response.status_code != 200:
-                print(f'Error: {response.status_code}')
-                continue
-            break
-        except Exception as e:
-            print(f'Error: timeout get_lines {e}')
-            time.sleep(10)
+    response = requests.get(URL1, params=params, timeout=10)
 
     data = response.json()
 
