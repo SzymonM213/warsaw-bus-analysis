@@ -12,6 +12,8 @@ PATH_TO_LOCALIZATIONS = 'tests/test_data/test-buses.json'
 PATH_TO_BUS_STOPS = 'tests/test_data/test-bus-stops.json'
 PATH_TO_SCHEDULE = 'tests/test_data/test-schedule.csv'
 
+TEST_REQUESTS = False
+
 class TestUtils(unittest.TestCase):
     ''' Test utils.py module. '''
 
@@ -35,18 +37,20 @@ class TestUtils(unittest.TestCase):
 
     def test_get_address_components(self):
         ''' Test get_address_components function. '''
-        street, district, city = get_address_components(52.21185112179191, 20.982080090108504)
-        self.assertEqual(street, 'Ludwika Pasteura')
-        self.assertEqual(district, 'Ochota')
-        self.assertEqual(city, 'Warszawa')
+        if TEST_REQUESTS:
+            street, district, city = get_address_components(52.21185112179191, 20.982080090108504)
+            self.assertEqual(street, 'Ludwika Pasteura')
+            self.assertEqual(district, 'Ochota')
+            self.assertEqual(city, 'Warszawa')
 
     def test_get_current_localization(self):
         ''' Test get_current_localization function. '''
-        localizations = get_current_localization()
-        self.assertTrue(len(localizations) > 0)
-        localizations = pd.DataFrame(localizations)
-        self.assertEqual(localizations.columns.tolist(),
-                         ['Lines', 'Lon', 'VehicleNumber', 'Time', 'Lat', 'Brigade'])
+        if TEST_REQUESTS:
+            localizations = get_current_localization()
+            self.assertTrue(len(localizations) > 0)
+            localizations = pd.DataFrame(localizations)
+            self.assertEqual(localizations.columns.tolist(),
+                            ['Lines', 'Lon', 'VehicleNumber', 'Time', 'Lat', 'Brigade'])
 
 class TestOverspeed(unittest.TestCase):
     ''' Test overspeed.py module. '''
@@ -83,11 +87,12 @@ class TestOverspeed(unittest.TestCase):
 
     def test_count_overspeeding_vehicles(self):
         ''' Test count_overspeeding_vehicles function. '''
-        overspeeding_vehicles, result = count_overspeeding_vehicles(PATH_TO_LOCALIZATIONS,
-                                                                    False)
-        self.assertTrue(overspeeding_vehicles > 0)
-        self.assertEqual(list(result.keys()), [Street('Kolonia Lubeckiego',  'Ochota', 'Warszawa')])
-        self.assertEqual(len(result[Street('Kolonia Lubeckiego',  'Ochota', 'Warszawa')]), 1)
+        if TEST_REQUESTS:
+            overspeeding_vehicles, result = count_overspeeding_vehicles(PATH_TO_LOCALIZATIONS,
+                                                                        False)
+            self.assertTrue(overspeeding_vehicles > 0)
+            self.assertEqual(list(result.keys()), [Street('Kolonia Lubeckiego',  'Ochota', 'Warszawa')])
+            self.assertEqual(len(result[Street('Kolonia Lubeckiego',  'Ochota', 'Warszawa')]), 1)
 
 class TestPunctuality(unittest.TestCase):
     ''' Test punctuality.py module. '''
