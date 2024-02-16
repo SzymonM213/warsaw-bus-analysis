@@ -14,7 +14,10 @@ PATH_TO_SCHEDULE = '../data/schedule.csv'
 PATH_TO_BUS_STOPS = '../data/bus_stops.json'
 
 def get_bus_stops() -> List[Dict[str, str]]:
-    ''' Get all bus stops from Warsaw Data API. '''
+    '''
+    Get all bus stops from Warsaw Data API.
+    
+    '''
     params = {
         'id': 'ab75c33d-3a26-4342-b36a-6e5fef0a3ac3',
         'apikey': API_KEY,
@@ -35,7 +38,14 @@ def get_bus_stops() -> List[Dict[str, str]]:
     return result
 
 def get_lines(busstop_id: str, busstop_nr: str) -> List[str]:
-    ''' Get all lines from given bus stop. '''
+    '''
+    Get all lines from given bus stop.
+    
+    :param busstop_id: ID of the bus stop.
+
+    :param busstop_nr: Number of the bus stop.
+
+    '''
     params = {
         'id': '88cd555f-6f31-43ca-9de4-66c479ad5942',
         'apikey': API_KEY,
@@ -55,7 +65,16 @@ def get_lines(busstop_id: str, busstop_nr: str) -> List[str]:
     return result
 
 def get_schedule(line: str, busstop_id: str, busstop_nr: str) -> List[Dict[str, str]]:
-    ''' Get schedule for given line and bus stop. '''
+    '''
+    Get schedule for given line and bus stop.
+    
+    :param line: Bus line number.
+
+    :param busstop_id: ID of the bus stop.
+
+    :param busstop_nr: Number of the bus stop.
+
+    '''
     params = {
         'id': 'e923fa0e-d96c-43f9-ae6e-60518c9f3238',
         'apikey': API_KEY,
@@ -80,12 +99,18 @@ def get_schedule(line: str, busstop_id: str, busstop_nr: str) -> List[Dict[str, 
     return result
 
 def save_bus_stops():
-    ''' Save bus stops to a file. '''
+    '''
+    Save bus stops to a file.
+    
+    '''
     with open(PATH_TO_BUS_STOPS, 'w', encoding='utf-8') as f:
         json.dump(get_bus_stops(), f)
 
 def save_schedule():
-    ''' Iterate over all bus stops and lines and save their schedule to a file.'''
+    '''
+    Iterate over all bus stops and lines and save their schedule to a file.
+    
+    '''
     with open(PATH_TO_BUS_STOPS, 'r', encoding='utf-8') as f:
         bus_stops = json.load(f)
 
@@ -97,11 +122,6 @@ def save_schedule():
     df = pd.DataFrame(result)
     df.to_csv(PATH_TO_SCHEDULE)
 
-def main():
-    ''' Main function. '''
+if __name__ == "__main__":
     save_bus_stops()
     save_schedule()
-
-
-if __name__ == "__main__":
-    main()

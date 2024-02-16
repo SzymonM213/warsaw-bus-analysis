@@ -7,13 +7,29 @@ PATH_TO_BUS_STOPS = 'data/bus_stops.json'
 PATH_TO_SCHEDULE = 'data/schedule.csv'
 
 def get_line_schedule(line: str, path_to_schedule: str) -> pd.DataFrame:
-    ''' Get the schedule for the given line. '''
+    '''
+    Get the schedule for the given line.
+
+    :param line: Bus line number.
+
+    :param path_to_schedule: Path to the file with schedule with all buses and bus stops.
+
+    '''
     schedule = pd.read_csv(path_to_schedule, low_memory=False)
     schedule['Brigade'] = schedule['Brigade'].astype(int)
     return schedule[schedule['Line'] == line]
 
 def get_line_bus_stops(line: str, path_to_bus_stops: str, path_to_schedule: str) -> pd.DataFrame:
-    ''' Get all the bus stops for the given line.'''
+    '''
+    Get all the bus stops for the given line.
+
+    :param line: Bus line number.
+
+    :param path_to_bus_stops: Path to the file with all bus stops.
+
+    :param path_to_schedule: Path to the file with schedule with all buses and bus stops.
+
+    '''
     bus_stops = pd.read_json(path_to_bus_stops)
     line_schedule = get_line_schedule(line, path_to_schedule)
     line_bus_stops = line_schedule[['BusstopID', 'BusstopNr']].drop_duplicates()
@@ -27,7 +43,16 @@ def get_line_bus_stops(line: str, path_to_bus_stops: str, path_to_schedule: str)
 def get_line_stops(line: str, localizations: pd.DataFrame,
                    path_to_bus_stops: str,
                    path_to_schedule: str) -> pd.DataFrame:
-    ''' For given line and localizations, get all the stops and the time. '''
+    '''
+    For given line and localizations, get all the stops and the time.
+    
+    :param line: Bus line number.
+
+    :param localizations: DataFrame with bus localizations.
+
+    :param path_to_bus_stops: Path to the file with all bus stops.
+
+    '''
     localizations = localizations[localizations['Lines'] == line]
     bus_stops = get_line_bus_stops(line, path_to_bus_stops, path_to_schedule).drop_duplicates()
 
@@ -37,7 +62,16 @@ def get_line_stops(line: str, localizations: pd.DataFrame,
     return localizations_to_stops_rounded.sort_values(by='Time')
 
 def get_stop_schedule(line: str, line_stops: pd.DataFrame, path_to_schedule: str) -> pd.DataFrame:
-    '''for each stop, get the scheduled time and the actual time'''
+    '''
+    For each stop, get the scheduled time and the actual time.
+    
+    :param line: Bus line number.
+    
+    :param line_stops: DataFrame with bus stops.
+    
+    :param path_to_schedule: Path to the file with schedule with all buses and bus stops.
+    
+    '''
     schedule = get_line_schedule(line, path_to_schedule)
     schedule = schedule.sort_values(by='Time')
 
@@ -61,7 +95,7 @@ def get_stop_schedule(line: str, line_stops: pd.DataFrame, path_to_schedule: str
         delay = datetime.combine(datetime.today(), scheduled_stop['Time']) - \
                 datetime.combine(datetime.today(), scheduled_stop['ScheduledTime'])
         scheduled_stop['Delay'] = delay.seconds / 60
-        if 'Unnamed: 0' in scheduled_stop:
+        if 'Unnamed: 0' in scheduled_stop: # unnecessary column
             scheduled_stop.drop(['Unnamed: 0'], inplace=True)
         if scheduled_stop['Delay'] < 30:
             # big delays results from the fact that the bus was
@@ -76,7 +110,15 @@ def get_stop_schedule(line: str, line_stops: pd.DataFrame, path_to_schedule: str
 def get_delays(path_to_localizations: str,
                path_to_bus_stops: str,
                path_to_schedule: str) -> pd.DataFrame:
-    ''' Find all the delays for the given hour. '''
+    '''Find all the delays for the given hour.
+    
+    :param path_to_localizations: Path to the file with bus localizations.
+    
+    :param path_to_bus_stops: Path to the file with all bus stops.
+    
+    :param path_to_schedule: Path to the file with schedule with all buses and bus stops.
+    
+    '''
     localizations = pd.read_json(path_to_localizations)
 
     lines = localizations['Lines'].unique()
@@ -99,12 +141,24 @@ def get_delays(path_to_localizations: str,
     return delays
 
 def get_delays_from_hour(hour: int) -> pd.DataFrame:
-    ''' Get delays from the given hour '''
+    '''
+    Get all delays from the given hour.
+    
+    :param hour: Hour of the day.
+    
+    '''
     path = f'data/buses-{hour}.json'
     return get_delays(path, PATH_TO_BUS_STOPS, PATH_TO_SCHEDULE)
 
 def filter_delays(delays: pd.DataFrame, threshold: int) -> pd.DataFrame:
-    ''' Filter delays that are greater than the threshold. '''
+    '''
+    Filter delays that are greater than the threshold.
+    
+    :param delays: DataFrame with delays.
+    
+    :param threshold: Minimum time to consider the delay.
+    
+    '''
     if delays.empty:
         return delays
     return delays[delays['Delay'] > threshold]

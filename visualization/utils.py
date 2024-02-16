@@ -12,7 +12,14 @@ URL = f'https://api.um.warszawa.pl/api/action/busestrams_get/?resource_id= \
         f2e5503e-927d-4ad3-9500-4ab9e55deb59&apikey={API_KEY}&type=1'
 
 def calculate_distance(coord1: tuple[float, float], coord2: tuple[float, float]) -> float:
-    ''' Calculate distance between two coordinates.'''
+    '''
+    Calculate distance between two coordinates.
+    
+    :param coord1: Coordinates of the first location.
+    
+    :param coord2: Coordinates of the second location.
+    
+    '''
     return geodesic(coord1, coord2).kilometers
 
 def date_to_seconds(date: str) -> float:
@@ -20,7 +27,13 @@ def date_to_seconds(date: str) -> float:
     return datetime.strptime(date, '%Y-%m-%d %H:%M:%S').timestamp()
 
 def get_address_components(latitude, longitude) -> Tuple[str, str, str]:
-    ''' Get street name, district and city from coordinates. '''
+    '''Get street name, district and city from coordinates.
+    
+    :param latitude: Latitude of the address.
+    
+    :param longitude: Longitude of the address.
+    
+    '''
     geolocator = Nominatim(user_agent="geoapiExercises")
     try:
         location = geolocator.reverse((latitude, longitude), exactly_one=True)
@@ -39,7 +52,10 @@ def get_address_components(latitude, longitude) -> Tuple[str, str, str]:
     return street_name, district, city
 
 def get_current_localization() -> List[Dict[str, str]]:
-    ''' Get current bus localization data from Warsaw Data API.'''
+    '''
+    Get current bus localization data from Warsaw Data API.
+    
+    '''
     response = requests.get(URL, timeout=10)
     if response.status_code != 200:
         print('Error:', response.status_code)

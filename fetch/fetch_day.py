@@ -11,7 +11,10 @@ URL = f'https://api.um.warszawa.pl/api/action/busestrams_get/?resource_id= \
         f2e5503e-927d-4ad3-9500-4ab9e55deb59&apikey={API_KEY}&type=1'
 
 def get_current_localization() -> List[Dict[str, str]]:
-    ''' Get current bus localization data from Warsaw Data API.'''
+    '''
+    Get current bus localization data from Warsaw Data API.
+    
+    '''
     response = requests.get(URL, timeout=10)
     if response.status_code != 200:
         print('Error:', response.status_code)
@@ -23,7 +26,10 @@ def get_current_localization() -> List[Dict[str, str]]:
     return data
 
 def fetch_hour():
-    ''' Fetch data for one hour and save it to a file. '''
+    '''
+    Fetch data for one hour and save it to a file.
+    
+    '''
     buses = []
     hour = datetime.now().hour
 
@@ -42,14 +48,13 @@ def fetch_hour():
         f.write(data.to_json(orient='records'))
 
 def fetch_day():
-    ''' Fetch data for all the day. '''
+    '''
+    Fetch data for all the day.
+    
+    '''
     for _ in range(24):
         fetch_hour()
 
-def main():
-    ''' Main function. '''
-    fetch_day()
-
 if __name__ == "__main__":
-    main()
+    fetch_day()
     
