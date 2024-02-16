@@ -18,7 +18,7 @@ def get_current_localization() -> List[Dict[str, str]]:
         return []
     data = response.json()
     data = data['result']
-    if isinstance(data, str): # why is status code 200 in this case?
+    if isinstance(data, str): # some error despite status code 200
         return []
     return data
 
@@ -26,6 +26,8 @@ def fetch_hour():
     ''' Fetch data for one hour and save it to a file. '''
     buses = []
     hour = datetime.now().hour
+
+    print(f'Fetching data for hour {hour}...')
 
     now = datetime.now()
     while now.hour == hour:

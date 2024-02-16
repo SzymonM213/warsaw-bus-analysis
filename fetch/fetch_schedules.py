@@ -10,6 +10,9 @@ API_KEY = os.environ.get('WARSAW_DATA_API_KEY')
 URL1 = 'https://api.um.warszawa.pl/api/action/dbtimetable_get'
 URL2 = 'https://api.um.warszawa.pl/api/action/dbstore_get'
 
+PATH_TO_SCHEDULE = '../data/schedule.csv'
+PATH_TO_BUS_STOPS = '../data/bus_stops.json'
+
 def get_bus_stops() -> List[Dict[str, str]]:
     ''' Get all bus stops from Warsaw Data API. '''
     params = {
@@ -78,12 +81,12 @@ def get_schedule(line: str, busstop_id: str, busstop_nr: str) -> List[Dict[str, 
 
 def save_bus_stops():
     ''' Save bus stops to a file. '''
-    with open('../data/bus_stops.json', 'w', encoding='utf-8') as f:
+    with open(PATH_TO_BUS_STOPS, 'w', encoding='utf-8') as f:
         json.dump(get_bus_stops(), f)
 
 def save_schedule():
     ''' Iterate over all bus stops and lines and save their schedule to a file.'''
-    with open('../data/bus_stops.json', 'r', encoding='utf-8') as f:
+    with open(PATH_TO_BUS_STOPS, 'r', encoding='utf-8') as f:
         bus_stops = json.load(f)
 
     result = []
@@ -92,7 +95,7 @@ def save_schedule():
         for line in lines:
             result = result + get_schedule(line, bus_stop['BusstopID'], bus_stop['BusstopNr'])
     df = pd.DataFrame(result)
-    df.to_csv('../data/schedule.csv')
+    df.to_csv(PATH_TO_SCHEDULE)
 
 def main():
     ''' Main function. '''
