@@ -5,8 +5,8 @@ from tqdm import tqdm
 from .utils import calculate_distance
 from scipy.spatial.distance import cdist
 
-PATH_TO_BUS_STOPS = '../data/bus_stops.json'
-PATH_TO_SCHEDULE = '../data/schedule.csv'
+PATH_TO_BUS_STOPS = 'data/bus_stops.json'
+PATH_TO_SCHEDULE = 'data/schedule.csv'
 
 def get_line_schedule(line: str, path_to_schedule: str) -> pd.DataFrame:
     ''' Get the schedule for the given line. '''
@@ -99,7 +99,7 @@ def get_delays(hour: int, path_to_localizations: str, path_to_bus_stops: str, pa
 
 def get_delays_from_hour(hour: int) -> pd.DataFrame:
     ''' Get delays from the given hour '''
-    path = f'../data/buses-{hour}.json'
+    path = f'data/buses-{hour}.json'
     return get_delays(hour, path, PATH_TO_BUS_STOPS, PATH_TO_SCHEDULE)
 
 def filter_delays(delays: pd.DataFrame, threshold: int) -> pd.DataFrame:

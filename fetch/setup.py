@@ -10,8 +10,7 @@ setup(
         'tqdm',
         'geopy',
         'matplotlib',
-        'folium',
-        'scipy'
+        'folium'
     ],
     description='A package for fetching data from the Warsaw API.'
 )
