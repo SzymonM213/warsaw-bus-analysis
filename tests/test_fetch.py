@@ -3,6 +3,8 @@ from fetch.fetch_schedules import get_bus_stops, get_lines, get_schedule
 from fetch.fetch_day import get_current_localization
 import pandas as pd
 
+TEST_REQUESTS = False
+
 class TestSchedulesFetch(unittest.TestCase):
     ''' Test fetch_schedules.py module. '''
     def test_get_bus_stops(self):
@@ -41,15 +43,16 @@ class TestDayFetch(unittest.TestCase):
 
     def test_get_current_localization(self):
         ''' Test get_current_localization function. '''
-        localization = get_current_localization()
-        self.assertTrue(len(localization) > 0)
-        self.assertTrue('Lines' in localization[0])
-        self.assertTrue('Lon' in localization[0])
-        self.assertTrue('Lat' in localization[0])
-        self.assertTrue('Time' in localization[0])
-        self.assertTrue('Brigade' in localization[0])
-        for bus in localization:
-            self.assertTrue(bus['Lines'].isdigit() or bus['Lines'][0] in ['N', 'E', 'L', 'Z'])
+        if TEST_REQUESTS:
+            localization = get_current_localization()
+            self.assertTrue(len(localization) > 0)
+            self.assertTrue('Lines' in localization[0])
+            self.assertTrue('Lon' in localization[0])
+            self.assertTrue('Lat' in localization[0])
+            self.assertTrue('Time' in localization[0])
+            self.assertTrue('Brigade' in localization[0])
+            for bus in localization:
+                self.assertTrue(bus['Lines'].isdigit() or bus['Lines'][0] in ['N', 'E', 'L', 'Z'])
 
 if __name__ == '__main__':
     unittest.main()

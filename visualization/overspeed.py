@@ -29,7 +29,18 @@ class Street:
 
 def calculate_speed(coord1: tuple[float, float], coord2: tuple[float, float],
                     time1: float, time2: float) -> float:
-    ''' Calculate the speed between two coordinates. '''
+    '''
+    Calculate the speed between two coordinates. 
+    
+    :param coord1: Coordinates of the first location.
+    
+    :param coord2: Coordinates of the second location.
+    
+    :param time1: Time of the first location.
+    
+    :param time2: Time of the second location.
+
+    '''
     distance = calculate_distance(coord1, coord2)
     if distance == 0:
         return 0
@@ -37,7 +48,12 @@ def calculate_speed(coord1: tuple[float, float], coord2: tuple[float, float],
     return distance / time_delta
 
 def calculate_speeds(group: pd.DataFrame) -> pd.DataFrame:
-    ''' Calculate speeds for each row in the group. '''
+    '''
+    Calculate speeds for each row in the group.
+
+    :param group: Localizations for a single vehicle.
+
+    '''
     group['PrevLon'] = group['Lon'].shift(1)
     group['PrevLat'] = group['Lat'].shift(1)
     group['PrevTime'] = group['Time'].shift(1)
@@ -54,12 +70,26 @@ def calculate_speeds(group: pd.DataFrame) -> pd.DataFrame:
     return group
 
 def get_street(lat: float, lon: float) -> Street:
-    ''' Get street from coordinates. '''
+    ''' 
+    Get street from coordinates. 
+    
+    :param lat: Latitude.
+
+    :param lon: Longitude.
+
+    '''
     return Street(*get_address_components(lat, lon))
 
 def count_overspeeding_vehicles(path_to_localizations: str, save_map: bool) \
                                 -> Tuple[int, Dict[str, int]]:
-    ''' Count overspeeding vehicles and their number on each street. '''
+    '''
+    Count overspeeding vehicles and their number on each street.
+    
+    :param path_to_localizations: Path to the file with bus localizations.
+    
+    :param save_map: If True, save the map with overspeeding vehicles.
+    
+    '''
     result: Dict[str, Set[str]] = {}
     overspeeding_vehicles: Set[str] = set()
 
@@ -97,5 +127,10 @@ def count_overspeeding_vehicles(path_to_localizations: str, save_map: bool) \
     return len(overspeeding_vehicles), result
 
 def count_overspeeding_vehicles_from_hour(hour: int) -> Tuple[int, Dict[str, int]]:
-    ''' Count overspeeding vehicles from the given hour. '''
+    '''
+    Count overspeeding vehicles from the given hour.
+    
+    :param hour: Hour of the day.
+
+    '''
     return count_overspeeding_vehicles(f'data/buses-{hour}.json', True)
