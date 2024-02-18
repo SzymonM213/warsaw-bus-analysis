@@ -1,5 +1,6 @@
 ''' This module contains functions for counting overspeeding vehicles and plotting the results. '''
 import json
+import os
 from typing import Dict, Set, Tuple
 import pandas as pd
 import folium
@@ -122,6 +123,8 @@ def count_overspeeding_vehicles(path_to_localizations: str, save_map: bool) \
     result = dict(sorted(result.items(), key=lambda item: len(item[1]), reverse=True))
 
     if save_map:
+        if not os.path.exists('maps'):
+            os.makedirs('maps')
         m.save('maps/overspeed_map.html')
 
     return len(overspeeding_vehicles), result
@@ -133,4 +136,4 @@ def count_overspeeding_vehicles_from_hour(hour: int) -> Tuple[int, Dict[str, int
     :param hour: Hour of the day.
 
     '''
-    return count_overspeeding_vehicles(f'data/buses-{hour}.json', True)
+    return count_overspeeding_vehicles(f'data/buses-{hour}.json', False)
